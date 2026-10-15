@@ -16,11 +16,11 @@ export async function PhotoDetails({ id }: { id: string }) {
         width={512}
         height={512}
         sizes="(min-width: 512px) 512px, 100vw"
-        className="mb-4 h-auto w-full rounded-lg bg-zinc-200 dark:bg-zinc-800"
+        className="mb-4 h-auto w-full rounded-lg bg-surface"
       />
 
       {photo.categories.length > 0 && (
-        <p className="mb-4 text-sm text-zinc-500">
+        <p className="mb-4 text-sm text-muted">
           {photo.categories.map((c) => c.name).join(" · ")}
         </p>
       )}
@@ -32,7 +32,10 @@ export async function PhotoDetails({ id }: { id: string }) {
         <ul className="flex flex-col gap-2">
           {photo.items.map((item) => (
             <li key={item.id}>
-              <Link href={`/items/${item.id}`} className="flex items-center gap-3 rounded border p-2">
+              <Link
+                href={`/items/${item.id}`}
+                className="flex items-center gap-3 rounded-lg border border-cream/15 p-2 hover:border-cream/40"
+              >
                 <Image
                   src={item.photoUrl}
                   alt=""

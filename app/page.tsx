@@ -6,10 +6,10 @@ import { photoAlt } from "@/lib/format";
 
 export default function GalleryPage({ searchParams }: PageProps<"/">) {
   return (
-    <main className="mx-auto w-full max-w-3xl p-4">
-      <h1 className="mb-4 text-2xl font-semibold">Gallery</h1>
+    <main className="mx-auto w-full max-w-6xl px-4 pb-8">
+      <h1 className="pt-6 pb-4 text-2xl font-semibold tracking-wide sm:text-3xl">Get the look</h1>
 
-      <Suspense fallback={<p>Loading photos…</p>}>
+      <Suspense fallback={<p className="text-muted">Loading photos…</p>}>
         {searchParams.then(({ category }) => (
           <Gallery categoryId={typeof category === "string" ? category : undefined} />
         ))}
@@ -19,7 +19,7 @@ export default function GalleryPage({ searchParams }: PageProps<"/">) {
 }
 
 async function Gallery({ categoryId }: { categoryId?: string }) {
-  const [categories, { demoPhotos, total }] = await Promise.all([
+  const [categories, { demoPhotos }] = await Promise.all([
     getCategories(),
     getDemoPhotos({ categoryId }),
   ]);
@@ -27,50 +27,68 @@ async function Gallery({ categoryId }: { categoryId?: string }) {
   return (
     <>
       {categories.length > 0 && (
-        <nav className="mb-4 flex flex-wrap gap-2">
-          <Link
-            href="/"
-            className={`rounded-full border px-3 py-1 ${!categoryId ? "bg-foreground text-background" : ""}`}
-          >
+        <nav className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+          <CategoryChip href="/" active={!categoryId}>
             All
-          </Link>
+          </CategoryChip>
           {categories.map((category) => (
-            <Link
+            <CategoryChip
               key={category.id}
               href={`/?category=${category.id}`}
-              className={`rounded-full border px-3 py-1 ${category.id === categoryId ? "bg-foreground text-background" : ""}`}
+              active={category.id === categoryId}
             >
               {category.name}
-            </Link>
+            </CategoryChip>
           ))}
         </nav>
       )}
 
       {demoPhotos.length === 0 ? (
-        <p>{categoryId ? "No photos in this category yet." : "No photos yet."}</p>
+        <p className="text-muted">
+          {categoryId ? "No photos in this category yet." : "No photos yet."}
+        </p>
       ) : (
-        <>
-          <p className="mb-4 text-sm text-zinc-500">
-            Showing {demoPhotos.length} of {total}
-          </p>
-          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {demoPhotos.map((photo) => (
-              <li key={photo.id}>
-                <Link href={`/photos/${photo.id}`} className="block">
-                  <Image
-                    src={photo.photoUrl}
-                    alt={photoAlt(photo.items.map((item) => item.name))}
-                    width={400}
-                    height={400}
-                    sizes="(min-width: 640px) 33vw, 50vw"
-                    className="h-auto w-full rounded-lg bg-zinc-200 dark:bg-zinc-800"
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </>
+        <ul className="columns-2 gap-2 sm:columns-3 sm:gap-3 lg:columns-4">
+          {demoPhotos.map((photo) => (
+            <li key={photo.id} className="mb-2 break-inside-avoid sm:mb-3">
+              <Link href={`/photos/${photo.id}`} className="block">
+                <Image
+                  src={photo.photoUrl}
+                  alt={photoAlt(photo.items.map((item) => item.name))}
+                  width={400}
+                  height={400}
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                  className="h-auto w-full rounded-md bg-surface transition-opacity hover:opacity-85"
+                />
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
     </>
+  );
+}
+
+function CategoryChip({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`shrink-0 rounded-full border px-4 py-1.5 text-sm whitespace-nowrap transition-colors ${
+        active
+          ? "border-brand bg-brand text-white"
+          : "border-cream/25 text-cream hover:border-cream/60"
+      }`}
+    >
+      {children}
+    </Link>
   );
 }

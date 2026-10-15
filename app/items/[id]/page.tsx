@@ -30,7 +30,7 @@ async function ItemDetails({ id }: { id: string }) {
         width={512}
         height={512}
         sizes="(min-width: 512px) 512px, 100vw"
-        className="mb-4 h-auto w-full rounded-lg bg-zinc-200 dark:bg-zinc-800"
+        className="mb-4 h-auto w-full rounded-lg bg-surface"
       />
       <h1 className="text-2xl font-semibold">{item.name}</h1>
       <p className="mb-4 text-lg">{formatPrice(item.price)}</p>
