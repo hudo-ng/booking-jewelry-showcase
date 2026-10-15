@@ -1,6 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { getCategories, getDemoPhotos } from "@/lib/api/jewelry";
+import { photoAlt } from "@/lib/format";
 
 export default function GalleryPage({ searchParams }: PageProps<"/">) {
   return (
@@ -54,14 +56,15 @@ async function Gallery({ categoryId }: { categoryId?: string }) {
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {demoPhotos.map((photo) => (
               <li key={photo.id}>
-                <Link
-                  href={`/photos/${photo.id}`}
-                  className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg bg-zinc-200 p-2 text-center text-sm dark:bg-zinc-800"
-                >
-                  <span>{photo.categories.map((c) => c.name).join(", ") || "Photo"}</span>
-                  <span className="text-zinc-500">
-                    {photo.items.length} {photo.items.length === 1 ? "item" : "items"}
-                  </span>
+                <Link href={`/photos/${photo.id}`} className="block">
+                  <Image
+                    src={photo.photoUrl}
+                    alt={photoAlt(photo.items.map((item) => item.name))}
+                    width={400}
+                    height={400}
+                    sizes="(min-width: 640px) 33vw, 50vw"
+                    className="h-auto w-full rounded-lg bg-zinc-200 dark:bg-zinc-800"
+                  />
                 </Link>
               </li>
             ))}

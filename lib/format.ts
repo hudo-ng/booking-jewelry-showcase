@@ -4,3 +4,7 @@ const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" 
 export function formatPrice(price: number) {
   return usd.format(price);
 }
+
+export function photoAlt(itemNames: string[]) {
+  return itemNames.length > 0 ? `Wearing ${itemNames.join(", ")}` : "Jewelry photo";
+}

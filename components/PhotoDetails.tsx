@@ -1,7 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDemoPhoto } from "@/lib/api/jewelry";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, photoAlt } from "@/lib/format";
 
 export async function PhotoDetails({ id }: { id: string }) {
   const photo = await getDemoPhoto(id);
@@ -9,9 +10,14 @@ export async function PhotoDetails({ id }: { id: string }) {
 
   return (
     <div>
-      <div className="mb-4 flex aspect-square items-center justify-center rounded-lg bg-zinc-200 p-4 text-center text-sm break-all dark:bg-zinc-800">
-        {photo.photoUrl}
-      </div>
+      <Image
+        src={photo.photoUrl}
+        alt={photoAlt(photo.items.map((item) => item.name))}
+        width={512}
+        height={512}
+        sizes="(min-width: 512px) 512px, 100vw"
+        className="mb-4 h-auto w-full rounded-lg bg-zinc-200 dark:bg-zinc-800"
+      />
 
       {photo.categories.length > 0 && (
         <p className="mb-4 text-sm text-zinc-500">
@@ -26,8 +32,15 @@ export async function PhotoDetails({ id }: { id: string }) {
         <ul className="flex flex-col gap-2">
           {photo.items.map((item) => (
             <li key={item.id}>
-              <Link href={`/items/${item.id}`} className="flex justify-between rounded border px-3 py-2">
-                <span>{item.name}</span>
+              <Link href={`/items/${item.id}`} className="flex items-center gap-3 rounded border p-2">
+                <Image
+                  src={item.photoUrl}
+                  alt=""
+                  width={64}
+                  height={64}
+                  className="size-16 rounded object-cover"
+                />
+                <span className="flex-1">{item.name}</span>
                 <span>{formatPrice(item.price)}</span>
               </Link>
             </li>
