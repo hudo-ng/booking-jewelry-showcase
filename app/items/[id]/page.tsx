@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { getItem } from "@/lib/api/jewelry";
+import { formatPrice } from "@/lib/format";
 
 // Jewelry item page: always a full page (no overlay).
 export default function ItemPage({ params }: PageProps<"/items/[id]">) {
@@ -9,20 +12,36 @@ export default function ItemPage({ params }: PageProps<"/items/[id]">) {
         ← Gallery
       </Link>
       <Suspense fallback={<p>Loading item…</p>}>
-        {params.then(({ id }) => (
-          <h1 className="mb-4 text-2xl font-semibold">Item {id}</h1>
-        ))}
+        {params.then(({ id }) => <ItemDetails id={id} />)}
       </Suspense>
-      <h2 className="mb-2 font-semibold">Also seen in</h2>
-      <ul className="flex gap-2">
-        {["3", "4"].map((photoId) => (
-          <li key={photoId}>
-            <Link href={`/photos/${photoId}`} className="rounded border px-3 py-1">
-              Photo {photoId}
-            </Link>
-          </li>
-        ))}
-      </ul>
     </main>
+  );
+}
+
+async function ItemDetails({ id }: { id: string }) {
+  const item = await getItem(id);
+  if (!item) notFound();
+
+  return (
+    <>
+      <h1 className="text-2xl font-semibold">{item.name}</h1>
+      <p className="mb-4 text-lg">{formatPrice(item.price)}</p>
+      {item.description && <p className="mb-4 whitespace-pre-line">{item.description}</p>}
+
+      <h2 className="mb-2 font-semibold">Also seen in</h2>
+      {item.demoPhotos.length === 0 ? (
+        <p>Not in any photos yet.</p>
+      ) : (
+        <ul className="flex flex-wrap gap-2">
+          {item.demoPhotos.map((photo, index) => (
+            <li key={photo.id}>
+              <Link href={`/photos/${photo.id}`} className="rounded border px-3 py-1">
+                Photo {index + 1}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }
