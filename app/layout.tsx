@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import Image from "next/image";
+import { Suspense } from "react";
+import { LogoutButton } from "@/components/LogoutButton";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -11,6 +13,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Jewelry | Hyper Inkers",
   description: "Get the look: jewelry worn by Hyper Inkers clients.",
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
@@ -22,7 +25,7 @@ export default function RootLayout({ children, modal }: LayoutProps<"/">) {
     <html lang="en" className={`${outfit.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <header className="border-b border-cream/10">
-          <div className="mx-auto flex h-14 w-full max-w-6xl items-center px-4">
+          <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
             <a href="https://hyperinkers.com" aria-label="Hyper Inkers home">
               <Image
                 src="/hyperinkers-logo.png"
@@ -33,6 +36,9 @@ export default function RootLayout({ children, modal }: LayoutProps<"/">) {
                 className="h-6 w-auto"
               />
             </a>
+            <Suspense fallback={null}>
+              <LogoutButton />
+            </Suspense>
           </div>
         </header>
         {children}

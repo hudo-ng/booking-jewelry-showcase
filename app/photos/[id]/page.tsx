@@ -4,8 +4,8 @@ import { PhotoDetails } from "@/components/PhotoDetails";
 
 export default function PhotoPage({ params }: PageProps<"/photos/[id]">) {
   return (
-    <main className="mx-auto w-full max-w-lg p-4">
-      <Link href="/" className="mb-4 inline-block underline">
+    <main className="mx-auto w-full max-w-4xl p-4">
+      <Link href="/" className="mb-4 inline-block text-muted hover:text-cream">
         ← Gallery
       </Link>
       <Suspense fallback={<p>Loading photo…</p>}>

@@ -1,6 +1,6 @@
 # Jewelry Showcase (web app)
 
-Public, read-only web app that shows Hyperinkers' jewelry: a gallery of demo photos (customers wearing the jewelry), filterable by category, where each photo lists the jewelry items in it ("Get this look"). Inspired by an in-store jewelry kiosk video (Banter by Piercing Pagoda), but this is a normal website, not a kiosk. Must not copy that brand's name or assets.
+Read-only web app, **behind a staff login** (see "Login"), that shows Hyperinkers' jewelry: a gallery of demo photos (customers wearing the jewelry), filterable by category, where each photo lists the jewelry items in it ("Get this look"). Inspired by an in-store jewelry kiosk video (Banter by Piercing Pagoda), but this is a normal website, not a kiosk. Must not copy that brand's name or assets.
 
 ## How to work with me (the developer)
 - **I want to decide each step and learn.** Before writing code, explain the step, the options and your recommendation, then wait for my decision.
@@ -18,7 +18,9 @@ Public, read-only web app that shows Hyperinkers' jewelry: a gallery of demo pho
   - **Data is fetched on the server** in server components, using plain `fetch` with `"use cache"`. No axios. TanStack Query is planned only for browser-side needs later (gallery infinite scroll, live search).
   - Plain TypeScript types for API responses (no runtime validation such as Zod).
   - Images: `next/image` with a custom ImageKit loader (`lib/imagekit-loader.ts`, `?tr=w-…,q-…`), so Vercel's image optimization isn't used.
-  - Planned: CSS-columns masonry grid, PhotoSwipe (`react-photoswipe-gallery`) for pinch/double-tap zoom and swipe, Vaul bottom sheet for "Get this look" on phones. Optional: Motion for animations.
+  - Look: dark theme based on hyperinkers.com. Colors are in `@theme` in `app/globals.css`: `ink` #0a0a0a background, `surface`, `cream` #dcdbbe text, `muted`, `brand` #cc6600 (their orange) for accents, `gold` #cc9933 for prices. Font: Outfit (Google). Header with their logo (`public/hyperinkers-logo.png`).
+  - Gallery: uniform grid of 3:4 tiles (`object-cover`, center crop), 2/3/4 columns. Masonry was tried and rejected: the user wants same-size tiles like the video. Category chips are one sideways-scrolling row.
+  - Postponed, only if phone testing shows a need: PhotoSwipe zoom (needs stored image width/height) and the Vaul bottom sheet (no updates since Dec 2024). Phone browsers already allow pinch-zoom of the page. Optional: Motion for animations.
 - Folder layout: no `src/`. `app/` holds routes only, `components/` holds shared UI, `lib/` holds API code and helpers. The `@/*` import alias points to the project root.
 - Each opened photo / item has its own URL (shareable, link previews, back button closes it).
 
@@ -35,6 +37,21 @@ Public, read-only web app that shows Hyperinkers' jewelry: a gallery of demo pho
 - `jewelry.ts`: `getCategories`, `getDemoPhotos({ categoryId, page })`, `getDemoPhoto(id)`, `getItem(id)`. Each has `"use cache"` + `cacheLife({ revalidate: 60 })`, and `expire` stays at the default (never), so visitors don't wait for Render's free plan to wake the API.
 - Pages read `params` / `searchParams` inside `<Suspense>`, as Cache Components requires. An unknown id calls `notFound()`.
 
+## Login (permanent, staff only)
+- Every page needs a login; logged-out visitors only see `/login`. Allowed: backend users with role `admin` or `employee` (that's every staff account).
+- `/login` (`app/login/page.tsx`, `components/LoginForm.tsx`) → server action `login` in `app/login/actions.ts` → backend `POST /auth/login` (email + password). On success the web app sets **its own** signed session cookie (`lib/session.ts`, `jose`, HS256, 30 days, httpOnly, `secure` only in production so phone testing over http works). It doesn't use or store the backend's token or `JWT_SECRET`.
+- `proxy.ts` (Next 16's name for middleware) checks the cookie before every request and redirects to `/login?from=…`. It excludes `_next/static`, `_next/image`, `favicon.ico` and the logo. `from` is only followed if it's a path on this site.
+- Log out button in the header (`components/LogoutButton.tsx`, inside `<Suspense>` because it reads the URL).
+- Env: `SESSION_SECRET` (min 32 characters) in `.env.local` locally; it must also be set on Vercel. Without it, the proxy throws and nothing loads (fails closed).
+- The API data and ImageKit photos are still public; only the website is protected (accepted).
+- `robots: noindex` in the root metadata.
+- Backend issues noticed (not fixed): `/auth/login` doesn't check `deletedAt`, so soft-deleted staff can still log in; `JWT_SECRET` falls back to `"secret"` if unset on Render.
+
+## Reference video (what the kiosk does)
+A portrait in-store kiosk, about 2:40. We take the photo gallery idea, not the brand.
+- **Customer photo gallery:** a tight mosaic of cropped photo tiles. Tapping a photo opens a **popup card**: the photo on the left; on the right the customer's name/handle, a caption with hashtags, a ♡ like and ✕ close, then **"Get this look! (N items)"** with item thumbnail, name and price. No zoom, no swiping between photos, no bottom sheet.
+- Other screens (not planned unless decided): a home screen with hero image + category tiles, a permanent side menu (All Categories, Piercing Earring, New Arrivals, Online Exclusives, Virtual Try-On), a **product catalog** with filter dropdowns (style, price range) whose product popup shows photo, item #, name, price, "Tap to buy" and "Email me details", and a camera **virtual try-on**.
+
 ## Planned user flow
 1. **Gallery** (landing): grid of demo photos, newest first, with category chips (All + categories).
 2. Tap a **category chip** → gallery filtered to that category.
@@ -43,8 +60,12 @@ Public, read-only web app that shows Hyperinkers' jewelry: a gallery of demo pho
 5. Optional **All Jewelry** page: item grid with search / price sort.
 
 ### Still undecided
-- What the button on an item does (suggestion: "Book an appointment" → existing booking site `/book`).
+- What the button on an item does (suggestion: "Book an appointment" → existing booking site `/book`, our version of the video's "Tap to buy").
 - Whether jewelry items get their own categories (today only demo photos have categories).
+
+### Extras noted for later (from the video)
+- A short **caption** per demo photo, written by staff. Needs a backend field and a mobile app input.
+- **"Book an appointment"** button on items (see above).
 
 ## Backend API (already built, in `../booking-system-api`)
 Base URL (production): `https://hk-booking-system-api.onrender.com`. CORS is open.
@@ -72,18 +93,17 @@ Content is managed by staff in the mobile app (`../hkappointment`, Settings → 
 - Checks: `npx tsc --noEmit`, `npm run lint`, `npm run build`.
 - Next.js 16 differs from older versions. Read the bundled docs in `node_modules/next/dist/docs/` before using an API (see `AGENTS.md`).
 
-## Status (as of 2026-10-15)
+## Status (as of 2026-10-16)
 - Backend jewelry endpoints are deployed and working in production.
-- Mobile admin portal works on a device: test content (1 category, 1 demo photo, 1 item) was added through it.
+- Mobile admin portal works on a device: test content (1 category, 2 demo photos, 1 item) was added through it.
 - Web app, done:
   1. Project scaffolded (create-next-app, no `src/`).
   2. Routes + photo overlay.
   3. Data layer (server fetching + caching).
   4. Real images through ImageKit (5b).
-- Next steps:
-  - **5c**: masonry grid + gallery styling (columns per screen size, spacing, category chips on phones).
-  - **5d**: PhotoSwipe zoom/swipe, then the Vaul bottom sheet. This requires storing image width/height first: add optional `photoWidth`/`photoHeight` to `DemoPhoto` and `JewelryItem` in the backend, and have the mobile app send `data.width`/`data.height` from the ImageKit upload response. Until then, images start as square placeholders and adjust to their real shape when loaded.
-  - Later: link previews (`generateMetadata`), "load more"/infinite scroll (TanStack Query), All Jewelry page, deploy to Vercel.
+  5. Dark Hyperinkers styling + uniform 3:4 gallery grid (5c).
+  6. Video-style photo card (5d): wide card with the photo left and the panel right (categories, "Get this look (N items)", item rows with thumbnail, name, price); full screen and stacked on phones; ✕ in the corner.
+- Next steps (to decide): test on a phone; item page styling; link previews (`generateMetadata`); "load more"/infinite scroll (TanStack Query); All Jewelry page; deploy to Vercel. If zoom is needed later: store image width/height (optional `photoWidth`/`photoHeight` on `DemoPhoto` and `JewelryItem` in the backend; the mobile app sends `data.width`/`data.height` from the ImageKit upload response), then PhotoSwipe.
 
 ## Related projects (siblings in `Desktop/booking/`)
 - `booking-system-api`: Express + Prisma + Postgres backend (Render).

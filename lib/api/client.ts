@@ -1,6 +1,5 @@
-// Server-side only: the browser never calls the API directly.
-// Set API_URL in .env.local to point at another backend (e.g. a local one).
-const API_URL = process.env.API_URL ?? "https://hk-booking-system-api.onrender.com";
+
+export const API_URL = process.env.API_URL ?? "https://hk-booking-system-api.onrender.com";
 
 export async function apiGet<T>(path: string): Promise<T> {
   const response = await fetch(`${API_URL}${path}`);

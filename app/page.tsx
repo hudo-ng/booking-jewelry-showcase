@@ -48,17 +48,19 @@ async function Gallery({ categoryId }: { categoryId?: string }) {
           {categoryId ? "No photos in this category yet." : "No photos yet."}
         </p>
       ) : (
-        <ul className="columns-2 gap-2 sm:columns-3 sm:gap-3 lg:columns-4">
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
           {demoPhotos.map((photo) => (
-            <li key={photo.id} className="mb-2 break-inside-avoid sm:mb-3">
-              <Link href={`/photos/${photo.id}`} className="block">
+            <li key={photo.id}>
+              <Link
+                href={`/photos/${photo.id}`}
+                className="relative block aspect-[3/4] overflow-hidden rounded-md bg-surface"
+              >
                 <Image
                   src={photo.photoUrl}
                   alt={photoAlt(photo.items.map((item) => item.name))}
-                  width={400}
-                  height={400}
+                  fill
                   sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                  className="h-auto w-full rounded-md bg-surface transition-opacity hover:opacity-85"
+                  className="object-cover transition-opacity hover:opacity-85"
                 />
               </Link>
             </li>
